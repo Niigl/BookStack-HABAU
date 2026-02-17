@@ -170,6 +170,27 @@ class ConfigTest extends TestCase
         }
     }
 
+    public function test_content_filtering_defaults_to_enabled()
+    {
+        $this->runWithEnv(['APP_CONTENT_FILTERING' => null, 'ALLOW_CONTENT_SCRIPTS' => null], function () {
+            $this->assertEquals('jhfa', config('app.content_filtering'));
+        });
+    }
+
+    public function test_content_filtering_can_be_disabled()
+    {
+        $this->runWithEnv(['APP_CONTENT_FILTERING' => "", 'ALLOW_CONTENT_SCRIPTS' => null], function () {
+            $this->assertEquals('', config('app.content_filtering'));
+        });
+    }
+
+    public function test_allow_content_scripts_disables_content_filtering()
+    {
+        $this->runWithEnv(['APP_CONTENT_FILTERING' => null, 'ALLOW_CONTENT_SCRIPTS' => 'true'], function () {
+            $this->assertEquals('', config('app.content_filtering'));
+        });
+    }
+
     /**
      * Set an environment variable of the given name and value
      * then check the given config key to see if it matches the given result.

@@ -21,6 +21,8 @@ use BookStack\Exceptions\PermissionsException;
 use BookStack\Http\Controller;
 use BookStack\Permissions\Permission;
 use BookStack\References\ReferenceFetcher;
+use BookStack\Util\HtmlContentFilter;
+use BookStack\Util\HtmlContentFilterConfig;
 use Exception;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
@@ -173,7 +175,7 @@ class PageController extends Controller
     }
 
     /**
-     * Get page from an ajax request.
+     * Get a page from an ajax request.
      *
      * @throws NotFoundException
      */
@@ -182,6 +184,10 @@ class PageController extends Controller
         $page = $this->queries->findVisibleByIdOrFail($pageId);
         $page->setHidden(array_diff($page->getHidden(), ['html', 'markdown']));
         $page->makeHidden(['book']);
+
+        $filterConfig = HtmlContentFilterConfig::fromConfigString(config('app.content_filtering'));
+        $filter = new HtmlContentFilter($filterConfig);
+        $page->html = $filter->filterString($page->html);
 
         return response()->json($page);
     }

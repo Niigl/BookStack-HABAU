@@ -6,6 +6,7 @@ use BookStack\Entities\Models\Book;
 use BookStack\Entities\Models\Bookshelf;
 use BookStack\Entities\Models\Chapter;
 use BookStack\Util\HtmlContentFilter;
+use BookStack\Util\HtmlContentFilterConfig;
 
 class EntityHtmlDescription
 {
@@ -50,7 +51,8 @@ class EntityHtmlDescription
             return $html;
         }
 
-        return HtmlContentFilter::removeActiveContentFromHtmlString($html);
+        $filter = new HtmlContentFilter(new HtmlContentFilterConfig());
+        return $filter->filterString($html);
     }
 
     public function getPlain(): string
