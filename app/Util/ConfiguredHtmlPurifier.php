@@ -22,8 +22,13 @@ class ConfiguredHtmlPurifier
 
     public function __construct()
     {
+        // This is done by the web-server at run-time, with the existing
+        // storage/framework/cache folder to ensure we're using a server-writable folder.
+        $cachePath = storage_path('framework/cache/purifier');
+        $this->createCacheFolderIfNeeded($cachePath);
+
         $config = HTMLPurifier_HTML5Config::createDefault();
-        $this->setConfig($config);
+        $this->setConfig($config, $cachePath);
         $this->resetCacheIfNeeded($config);
 
         $htmlDef = $config->getDefinition('HTML', true, true);
@@ -32,6 +37,13 @@ class ConfiguredHtmlPurifier
         }
 
         $this->purifier = new HTMLPurifier($config);
+    }
+
+    protected function createCacheFolderIfNeeded(string $cachePath): void
+    {
+        if (!file_exists($cachePath)) {
+            mkdir($cachePath, 0777, true);
+        }
     }
 
     protected function resetCacheIfNeeded(HTMLPurifier_Config $config): void
@@ -53,9 +65,9 @@ class ConfiguredHtmlPurifier
         self::$cachedChecked = true;
     }
 
-    protected function setConfig(HTMLPurifier_Config $config): void
+    protected function setConfig(HTMLPurifier_Config $config, string $cachePath): void
     {
-        $config->set('Cache.SerializerPath', storage_path('framework/purifier'));
+        $config->set('Cache.SerializerPath', $cachePath);
         $config->set('Core.AllowHostnameUnderscore', true);
         $config->set('CSS.AllowTricky', true);
         $config->set('HTML.SafeIframe', true);
