@@ -463,6 +463,7 @@ HTML;
             '<div style="position:absolute;left:0;color:#00FFEE;">Hello!</div>' => '<div style="color:#00FFEE;">Hello!</div>',
             '<div style="background:#FF0000;left:0;color:#00FFEE;">Hello!</div>' => '<div style="background:#FF0000;color:#00FFEE;">Hello!</div>',
             '<div style="color:#00FFEE;">Hello!<style>testinghello!</style></div>' => '<div style="color:#00FFEE;">Hello!</div>',
+            '<div drawio-diagram="5332" another-attr="cat">Hello!</div>' => '<div drawio-diagram="5332">Hello!</div>',
         ];
 
         config()->set('app.content_filtering', 'a');

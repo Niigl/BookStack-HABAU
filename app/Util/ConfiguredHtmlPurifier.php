@@ -134,6 +134,13 @@ class ConfiguredHtmlPurifier
                 'value' => 'Text',
             ]
         );
+
+        // Allow the drawio-diagram attribute on div elements
+        $definition->addAttribute(
+            'div',
+            'drawio-diagram',
+            'Number',
+        );
     }
 
     public function purify(string $html): string
