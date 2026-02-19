@@ -282,4 +282,23 @@ class PageEditorTest extends TestCase
         $resp->assertOk();
         $resp->assertDontSee('hellotherethisisaturtlemonster', false);
     }
+
+    public function test_editor_html_filtered_does_not_cause_error_if_empty()
+    {
+        $emptyExamples = ['', '<p></p>', '<p>&nbsp;</p>', ' ', "\n"];
+        $editor = $this->users->editor();
+        $page = $this->entities->page();
+        $page->updated_by = $editor->id;
+
+        foreach ($emptyExamples as $emptyExample) {
+            $page->html = $emptyExample;
+            $page->save();
+
+            $resp = $this->asAdmin()->get($page->getUrl('edit'));
+            $resp->assertOk();
+
+            $resp = $this->asAdmin()->get("/ajax/page/{$page->id}");
+            $resp->assertOk();
+        }
+    }
 }
