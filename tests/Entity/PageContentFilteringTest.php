@@ -478,4 +478,25 @@ HTML;
             $resp->assertSee($expected, false);
         }
     }
+
+    public function test_allow_list_does_not_filter_cases()
+    {
+        $testCasesExpectedByInput = [
+            '<p><a href="https://example.com" target="_blank">New tab linkydoodle</a></p>',
+            '<p><a href="https://example.com/user/1" data-mention-user-id="5">@mentionusertext</a></p>',
+            '<details><summary>Hello</summary><p>Mydetailshere</p></details>',
+        ];
+
+        config()->set('app.content_filtering', 'a');
+        $page = $this->entities->page();
+        $this->asEditor();
+
+        foreach ($testCasesExpectedByInput as $input) {
+            $page->html = $input;
+            $page->save();
+            $resp = $this->get($page->getUrl());
+
+            $resp->assertSee($input, false);
+        }
+    }
 }

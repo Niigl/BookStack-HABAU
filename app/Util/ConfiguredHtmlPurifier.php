@@ -71,6 +71,8 @@ class ConfiguredHtmlPurifier
         $config->set('Core.AllowHostnameUnderscore', true);
         $config->set('CSS.AllowTricky', true);
         $config->set('HTML.SafeIframe', true);
+        $config->set('HTML.TargetNoopener', false);
+        $config->set('HTML.TargetNoreferrer', false);
         $config->set('Attr.EnableID', true);
         $config->set('Attr.ID.HTML5', true);
         $config->set('Output.FixInnerHTML', false);
@@ -141,6 +143,12 @@ class ConfiguredHtmlPurifier
             'drawio-diagram',
             'Number',
         );
+
+        // Allow target="_blank" on links
+        $definition->addAttribute('a', 'target', 'Enum#_blank');
+
+        // Allow mention-ids on links
+        $definition->addAttribute('a', 'data-mention-user-id', 'Number');
     }
 
     public function purify(string $html): string
