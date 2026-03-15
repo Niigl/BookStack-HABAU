@@ -48,17 +48,13 @@ Big thanks to these companies for supporting the project.
 #### Gold Sponsor
 
 <table><tbody><tr>
-<td align="center"><a href="https://www.federated.computer/bookstack" target="_blank">
-    <img width="480" src="https://www.bookstackapp.com/images/sponsors/federated-computer.png" alt="Federated.computer">
-</a></td>
-</tr><tr>
 <td align="center"><a href="https://www.diagrams.net/" target="_blank">
     <img width="480" src="https://www.bookstackapp.com/images/sponsors/diagramsnet.png" alt="Diagrams.net">
 </a></td>
 </tr>
 <tr>
 <td align="center"><a href="https://www.onyx.app/?utm_source=bookstack" target="_blank">
-    <img width="420" src="https://www.bookstackapp.com/images/sponsors/onyx.png" alt="onyx.app">
+    <img width="400" src="https://www.bookstackapp.com/images/sponsors/onyx.png" alt="onyx.app">
 </a></td>
 </tr>
 </tbody></table>
@@ -81,26 +77,23 @@ Big thanks to these companies for supporting the project.
 </a></td>
 </tr>
 <tr>
-<td align="center" style="text-align: center"><a href="https://www.schroeck-consulting.de/" target="_blank">
-    <img width="200" src="https://www.bookstackapp.com/images/sponsors/schroeck-consulting.png" alt="Schroeck IT Consulting">
-</a></td>
 <td align="center"><a href="https://practinet.be/" target="_blank">
     <img width="240" src="https://www.bookstackapp.com/images/sponsors/practinet.png" alt="Practinet">
 </a></td>
-</tr>
-<tr>
 <td align="center"><a href="https://route4me.com/" target="_blank">
     <img width="240" src="https://www.bookstackapp.com/images/sponsors/route4me.png" alt="Route4Me - Route Optimizer and Route Planner Software">
 </a></td>
+</tr>
+<tr>
 <td align="center"><a href="https://phamos.eu" target="_blank">
     <img width="132" src="https://www.bookstackapp.com/images/sponsors/phamos.png" alt="phamos">
 </a></td>
-</tr>
-<tr>
 <td align="center"><a href="https://sitespeak.ai/bookstack" target="_blank">
     <img width="240" src="https://www.bookstackapp.com/images/sponsors/sitespeak.png" alt="SiteSpeakAI">
 </a></td>
-<td align="center"><a href="https://www.admin-intelligence.de/bookstack/" target="_blank">
+</tr>
+<tr>
+<td align="center" colspan="2"><a href="https://www.admin-intelligence.de/bookstack/" target="_blank">
     <img width="210" src="https://www.bookstackapp.com/images/sponsors/admin-intelligence.png" alt="Admin Intelligence">
 </a></td>
 </tr>

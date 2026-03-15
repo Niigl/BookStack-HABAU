@@ -224,8 +224,13 @@ class BookController extends Controller
     {
         $book = $this->queries->findVisibleBySlugOrFail($bookSlug);
         $this->checkOwnablePermission(Permission::BookDelete, $book);
+        $contextShelf = $this->shelfContext->getContextualShelfForBook($book);
 
         $this->bookRepo->destroy($book);
+
+        if ($contextShelf) {
+            return redirect($contextShelf->getUrl());
+        }
 
         return redirect('/books');
     }

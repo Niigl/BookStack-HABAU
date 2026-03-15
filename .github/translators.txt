@@ -530,3 +530,6 @@ Shadluk Avan (quldosh) :: Uzbek
 Marci (MartonPoto) :: Hungarian
 Michał Sadurski (wheeskeey) :: Polish
 JanDziaslo :: Polish
+Charllys Fernandes (CharllysFernandes) :: Portuguese, Brazilian
+Ilgiz Zigangirov (inov8) :: Russian
+Max Israelsson (Blezie) :: Swedish
