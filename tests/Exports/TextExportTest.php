@@ -14,7 +14,7 @@ class TextExportTest extends TestCase
         $resp = $this->get($page->getUrl('/export/plaintext'));
         $resp->assertStatus(200);
         $resp->assertSee($page->name);
-        $resp->assertHeader('Content-Disposition', 'attachment; filename="' . $page->slug . '.txt"');
+        $resp->assertHeader('Content-Disposition', 'attachment; filename*=UTF-8\'\'' . $page->slug . '.txt');
     }
 
     public function test_book_text_export()
@@ -35,7 +35,7 @@ class TextExportTest extends TestCase
         $resp->assertSee($directPage->name);
         $resp->assertSee('My awesome page');
         $resp->assertSee('My little nested page');
-        $resp->assertHeader('Content-Disposition', 'attachment; filename="' . $book->slug . '.txt"');
+        $resp->assertHeader('Content-Disposition', 'attachment; filename*=UTF-8\'\'' . $book->slug . '.txt');
     }
 
     public function test_book_text_export_format()
@@ -68,7 +68,7 @@ class TextExportTest extends TestCase
         $resp->assertSee($chapter->name);
         $resp->assertSee($page->name);
         $resp->assertSee('This is content within the page!');
-        $resp->assertHeader('Content-Disposition', 'attachment; filename="' . $chapter->slug . '.txt"');
+        $resp->assertHeader('Content-Disposition', 'attachment; filename*=UTF-8\'\'' . $chapter->slug . '.txt');
     }
 
     public function test_chapter_text_export_format()

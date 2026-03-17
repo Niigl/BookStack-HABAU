@@ -323,7 +323,7 @@ class ExportFormatter
             $text .= $description . "\n\n";
         }
 
-        foreach ($chapter->pages as $page) {
+        foreach ($chapter->getVisiblePages() as $page) {
             $text .= $this->pageToMarkdown($page) . "\n\n";
         }
 
