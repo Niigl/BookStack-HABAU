@@ -178,7 +178,7 @@ Note: This is not an exhaustive list of all libraries and projects that would be
 * [phpseclib](https://github.com/phpseclib/phpseclib) - _[MIT](https://github.com/phpseclib/phpseclib/blob/master/LICENSE)_
 * [Clockwork](https://github.com/itsgoingd/clockwork) - _[MIT](https://github.com/itsgoingd/clockwork/blob/master/LICENSE)_
 * [PHPStan](https://phpstan.org/) & [Larastan](https://github.com/nunomaduro/larastan) - _[MIT](https://github.com/phpstan/phpstan/blob/master/LICENSE) and [MIT](https://github.com/nunomaduro/larastan/blob/master/LICENSE.md)_
-* [PHP_CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer) - _[BSD 3-Clause](https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt)_
+* [PHP_CodeSniffer](https://github.com/PHPCSStandards/PHP_CodeSniffer) - _[BSD 3-Clause](https://github.com/PHPCSStandards/PHP_CodeSniffer/blob/master/licence.txt)_
 * [JakeArchibald/IDB-Keyval](https://github.com/jakearchibald/idb-keyval) - _[Apache-2.0](https://github.com/jakearchibald/idb-keyval/blob/main/LICENCE)_
 * [HTML Purifier](https://github.com/ezyang/htmlpurifier) and [htmlpurifier-html5](https://github.com/xemlock/htmlpurifier-html5) - _[LGPL-2.1](https://github.com/ezyang/htmlpurifier/blob/master/LICENSE) and [MIT](https://github.com/xemlock/htmlpurifier-html5/blob/master/LICENSE)_
 

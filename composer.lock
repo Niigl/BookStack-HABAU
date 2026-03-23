@@ -62,16 +62,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.373.3",
+            "version": "3.373.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "d23edc4cf9cd81cb98b5beb9c1fb3737f535b1e5"
+                "reference": "4402bd10f913e66b7271f44466be8d5ba6c9146e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/d23edc4cf9cd81cb98b5beb9c1fb3737f535b1e5",
-                "reference": "d23edc4cf9cd81cb98b5beb9c1fb3737f535b1e5",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/4402bd10f913e66b7271f44466be8d5ba6c9146e",
+                "reference": "4402bd10f913e66b7271f44466be8d5ba6c9146e",
                 "shasum": ""
             },
             "require": {
@@ -153,9 +153,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.373.3"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.373.7"
             },
-            "time": "2026-03-16T18:15:27+00:00"
+            "time": "2026-03-20T18:14:19+00:00"
         },
         {
             "name": "bacon/bacon-qr-code",
@@ -1801,16 +1801,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v12.54.1",
+            "version": "v12.55.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "325497463e7599cd14224c422c6e5dd2fe832868"
+                "reference": "6d9185a248d101b07eecaf8fd60b18129545fd33"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/325497463e7599cd14224c422c6e5dd2fe832868",
-                "reference": "325497463e7599cd14224c422c6e5dd2fe832868",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/6d9185a248d101b07eecaf8fd60b18129545fd33",
+                "reference": "6d9185a248d101b07eecaf8fd60b18129545fd33",
                 "shasum": ""
             },
             "require": {
@@ -1926,7 +1926,7 @@
                 "orchestra/testbench-core": "^10.9.0",
                 "pda/pheanstalk": "^5.0.6|^7.0.0",
                 "php-http/discovery": "^1.15",
-                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan": "^2.1.41",
                 "phpunit/phpunit": "^10.5.35|^11.5.3|^12.0.1",
                 "predis/predis": "^2.3|^3.0",
                 "resend/resend-php": "^0.10.0|^1.0",
@@ -2019,20 +2019,20 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2026-03-10T20:25:56+00:00"
+            "time": "2026-03-18T14:28:59+00:00"
         },
         {
             "name": "laravel/prompts",
-            "version": "v0.3.14",
+            "version": "v0.3.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/prompts.git",
-                "reference": "9f0e371244eedfe2ebeaa72c79c54bb5df6e0176"
+                "reference": "4bb8107ec97651fd3f17f897d6489dbc4d8fb999"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/prompts/zipball/9f0e371244eedfe2ebeaa72c79c54bb5df6e0176",
-                "reference": "9f0e371244eedfe2ebeaa72c79c54bb5df6e0176",
+                "url": "https://api.github.com/repos/laravel/prompts/zipball/4bb8107ec97651fd3f17f897d6489dbc4d8fb999",
+                "reference": "4bb8107ec97651fd3f17f897d6489dbc4d8fb999",
                 "shasum": ""
             },
             "require": {
@@ -2076,9 +2076,9 @@
             "description": "Add beautiful and user-friendly forms to your command-line applications.",
             "support": {
                 "issues": "https://github.com/laravel/prompts/issues",
-                "source": "https://github.com/laravel/prompts/tree/v0.3.14"
+                "source": "https://github.com/laravel/prompts/tree/v0.3.15"
             },
-            "time": "2026-03-01T09:02:38+00:00"
+            "time": "2026-03-17T13:45:17+00:00"
         },
         {
             "name": "laravel/serializable-closure",
@@ -2281,16 +2281,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.8.1",
+            "version": "2.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "84b1ca48347efdbe775426f108622a42735a6579"
+                "reference": "59fb075d2101740c337c7216e3f32b36c204218b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/84b1ca48347efdbe775426f108622a42735a6579",
-                "reference": "84b1ca48347efdbe775426f108622a42735a6579",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/59fb075d2101740c337c7216e3f32b36c204218b",
+                "reference": "59fb075d2101740c337c7216e3f32b36c204218b",
                 "shasum": ""
             },
             "require": {
@@ -2384,7 +2384,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-05T21:37:03+00:00"
+            "time": "2026-03-19T13:16:38+00:00"
         },
         {
             "name": "league/config",
@@ -4027,16 +4027,16 @@
         },
         {
             "name": "phpseclib/phpseclib",
-            "version": "3.0.49",
+            "version": "3.0.50",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "6233a1e12584754e6b5daa69fe1289b47775c1b9"
+                "reference": "aa6ad8321ed103dc3624fb600a25b66ebf78ec7b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/6233a1e12584754e6b5daa69fe1289b47775c1b9",
-                "reference": "6233a1e12584754e6b5daa69fe1289b47775c1b9",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/aa6ad8321ed103dc3624fb600a25b66ebf78ec7b",
+                "reference": "aa6ad8321ed103dc3624fb600a25b66ebf78ec7b",
                 "shasum": ""
             },
             "require": {
@@ -4117,7 +4117,7 @@
             ],
             "support": {
                 "issues": "https://github.com/phpseclib/phpseclib/issues",
-                "source": "https://github.com/phpseclib/phpseclib/tree/3.0.49"
+                "source": "https://github.com/phpseclib/phpseclib/tree/3.0.50"
             },
             "funding": [
                 {
@@ -4133,7 +4133,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-27T09:17:28+00:00"
+            "time": "2026-03-19T02:57:58+00:00"
         },
         {
             "name": "pragmarx/google2fa",
@@ -5154,22 +5154,22 @@
         },
         {
             "name": "socialiteproviders/manager",
-            "version": "v4.8.1",
+            "version": "4.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SocialiteProviders/Manager.git",
-                "reference": "8180ec14bef230ec2351cff993d5d2d7ca470ef4"
+                "reference": "35372dc62787e61e91cfec73f45fd5d5ae0f8891"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SocialiteProviders/Manager/zipball/8180ec14bef230ec2351cff993d5d2d7ca470ef4",
-                "reference": "8180ec14bef230ec2351cff993d5d2d7ca470ef4",
+                "url": "https://api.github.com/repos/SocialiteProviders/Manager/zipball/35372dc62787e61e91cfec73f45fd5d5ae0f8891",
+                "reference": "35372dc62787e61e91cfec73f45fd5d5ae0f8891",
                 "shasum": ""
             },
             "require": {
-                "illuminate/support": "^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0",
+                "illuminate/support": "^11.0 || ^12.0 || ^13.0",
                 "laravel/socialite": "^5.5",
-                "php": "^8.1"
+                "php": "^8.2"
             },
             "require-dev": {
                 "mockery/mockery": "^1.2",
@@ -5224,7 +5224,7 @@
                 "issues": "https://github.com/socialiteproviders/manager/issues",
                 "source": "https://github.com/socialiteproviders/manager"
             },
-            "time": "2025-02-24T19:33:30+00:00"
+            "time": "2026-03-18T22:13:24+00:00"
         },
         {
             "name": "socialiteproviders/microsoft-azure",
@@ -9169,11 +9169,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.41",
+            "version": "2.1.42",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/a2eae8f20856b3afe74bf1f9726ce8c11438e300",
-                "reference": "a2eae8f20856b3afe74bf1f9726ce8c11438e300",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/1279e1ce86ba768f0780c9d889852b4e02ff40d0",
+                "reference": "1279e1ce86ba768f0780c9d889852b4e02ff40d0",
                 "shasum": ""
             },
             "require": {
@@ -9218,7 +9218,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-03-16T18:24:10+00:00"
+            "time": "2026-03-17T14:58:32+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

@@ -533,3 +533,4 @@ JanDziaslo :: Polish
 Charllys Fernandes (CharllysFernandes) :: Portuguese, Brazilian
 Ilgiz Zigangirov (inov8) :: Russian
 Max Israelsson (Blezie) :: Swedish
+Skiddybison5924 (chris-devel0per) :: German
