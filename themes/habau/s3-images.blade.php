@@ -1,9 +1,8 @@
 @extends('layouts.simple')
 @section('body')
-<div class="container small">
+<div class="container">
     @include('settings.parts.navbar', ['selected' => 's3-images'])
 
-    {{-- Erfolgsmeldung --}}
     @if(session('success'))
         <div class="notification pos mb-m">{{ session('success') }}</div>
     @endif
@@ -43,20 +42,6 @@
                     @endif
                 </div>
             </div>
-        </div>
-    </div>
-
-    {{-- Upload --}}
-    <div class="card content-wrap auto-height mb-m">
-        <h2 class="list-heading mb-m">Bilder hochladen</h2>
-        <div id="uploadArea" onclick="document.getElementById('fileInput').click()"
-             style="border: 2px dashed #ccc; border-radius: 4px; padding: 24px; text-align: center; cursor: pointer; transition: border-color 0.2s;">
-            <p style="margin: 0; font-weight: 600;">Klicke hier oder ziehe Dateien in diesen Bereich</p>
-            <p class="text-muted text-small" style="margin: 4px 0 0;">PNG, JPG, GIF, SVG, WebP</p>
-            <form action="/s3-admin/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
-                @csrf
-                <input type="file" name="images[]" id="fileInput" multiple accept="image/*" style="display: none;">
-            </form>
         </div>
     </div>
 
@@ -125,7 +110,6 @@
             </div>
         @endforelse
 
-        {{-- Selection Bar --}}
         <div id="selectionBar" style="display: none; position: sticky; bottom: 16px; background: #333; color: #fff; padding: 12px 20px; border-radius: 4px; margin-top: 16px; justify-content: space-between; align-items: center;">
             <span id="selectedCount">0 ausgewählt</span>
             <div style="display: flex; gap: 8px;">
@@ -137,19 +121,6 @@
 </div>
 
 <script>
-    var uploadArea = document.getElementById('uploadArea');
-    var fileInput = document.getElementById('fileInput');
-    var uploadForm = document.getElementById('uploadForm');
-
-    ['dragenter','dragover'].forEach(function(e) {
-        uploadArea.addEventListener(e, function(ev) { ev.preventDefault(); uploadArea.style.borderColor = '#206ea7'; });
-    });
-    ['dragleave','drop'].forEach(function(e) {
-        uploadArea.addEventListener(e, function(ev) { ev.preventDefault(); uploadArea.style.borderColor = '#ccc'; });
-    });
-    uploadArea.addEventListener('drop', function(ev) { fileInput.files = ev.dataTransfer.files; uploadForm.submit(); });
-    fileInput.addEventListener('change', function() { if (fileInput.files.length > 0) uploadForm.submit(); });
-
     function updateSelection() {
         var checked = document.querySelectorAll('input[name="paths[]"]:checked');
         var bar = document.getElementById('selectionBar');

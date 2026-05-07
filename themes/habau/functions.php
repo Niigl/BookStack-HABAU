@@ -33,14 +33,94 @@ Route::middleware('web')->post('/local-logout', function (Request $request) {
     return redirect('/login?prevent_auto=true');
 });
 
+// S3 Admin - Ausgewählte Bilder löschen
+Route::middleware('web')->post('/s3-admin/delete', function (Request $request) {
+    if (!auth()->check() || !auth()->user()->can('settings-manage')) {
+        abort(403);
+    }
+
+    $paths = $request->input('paths', []);
+    $disk = Storage::disk('s3');
+    $deleted = 0;
+
+    foreach ($paths as $path) {
+        if (str_starts_with($path, 'uploads/images/')) {
+            $disk->delete($path);
+            $dir = dirname($path);
+            $name = basename($path);
+            $disk->delete($dir . '/thumbs-150-150/' . $name);
+            $disk->delete($dir . '/scaled-1680-/' . $name);
+
+            $image = \BookStack\Uploads\Image::where('path', '/' . $path)->first();
+            if ($image) {
+                \DB::table('entity_page_data')
+                    ->where('html', 'like', '%' . basename($path) . '%')
+                    ->get()
+                    ->each(function ($page) use ($path) {
+                        $cleanHtml = preg_replace(
+                            '/<img[^>]*' . preg_quote(basename($path), '/') . '[^>]*>/',
+                            '',
+                            $page->html
+                        );
+                        $cleanMarkdown = $page->markdown ? preg_replace(
+                            '/!\[[^\]]*\]\([^)]*' . preg_quote(basename($path), '/') . '[^)]*\)/',
+                            '',
+                            $page->markdown
+                        ) : $page->markdown;
+
+                        \DB::table('entity_page_data')
+                            ->where('page_id', $page->page_id)
+                            ->update(['html' => $cleanHtml, 'markdown' => $cleanMarkdown]);
+                    });
+
+                $image->delete();
+            }
+
+            $deleted++;
+        }
+    }
+
+    return redirect('/s3-admin')->with('success', $deleted . ' Bilder gelöscht');
+});
+
+// S3 Admin - Alle Bilder löschen
+Route::middleware('web')->post('/s3-admin/delete-all', function (Request $request) {
+    if (!auth()->check() || !auth()->user()->can('settings-manage')) {
+        abort(403);
+    }
+
+    $disk = Storage::disk('s3');
+    $allFiles = $disk->allFiles('uploads/images');
+    foreach ($allFiles as $file) {
+        $disk->delete($file);
+    }
+    $count = count($allFiles);
+
+    \DB::table('entity_page_data')
+        ->where('html', 'like', '%/uploads/images/%')
+        ->get()
+        ->each(function ($page) {
+            $cleanHtml = preg_replace('/<img[^>]*\/uploads\/images\/[^>]*>/', '', $page->html);
+            $cleanMarkdown = $page->markdown ? preg_replace(
+                '/!\[[^\]]*\]\([^)]*\/uploads\/images\/[^)]*\)/',
+                '',
+                $page->markdown
+            ) : $page->markdown;
+
+            \DB::table('entity_page_data')
+                ->where('page_id', $page->page_id)
+                ->update(['html' => $cleanHtml, 'markdown' => $cleanMarkdown]);
+        });
+
+    \BookStack\Uploads\Image::query()->delete();
+
+    return redirect('/s3-admin')->with('success', $count . ' Dateien gelöscht');
+});
+
 // Theme Events
 Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
 
-    // ==============================
-    // S3 Bildverwaltung
-    // ==============================
-
-    // S3 Admin - Bildübersicht
+    // S3 Admin - Bildübersicht (GET)
     if ($request->is('s3-admin') && $request->isMethod('get')) {
         if (!auth()->check() || !auth()->user()->can('settings-manage')) {
             abort(403);
@@ -50,10 +130,8 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
         $filter = $request->get('filter', 'all');
         $search = $request->get('search', '');
 
-        // Alle Dateien holen
         $allFiles = $disk->allFiles('uploads/images');
 
-        // Statistiken berechnen
         $totalSize = 0;
         $originals = [];
         $thumbnails = 0;
@@ -78,7 +156,6 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
             }
         }
 
-        // Nach Monat/Ordner gruppieren
         $grouped = [];
         foreach ($originals as $img) {
             $folder = $img['folder'];
@@ -89,7 +166,6 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
         }
         krsort($grouped);
 
-        // Suche
         if ($search) {
             foreach ($grouped as $folder => &$images) {
                 $images = array_filter($images, function ($img) use ($search) {
@@ -99,7 +175,6 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
             $grouped = array_filter($grouped);
         }
 
-        // Filter
         if ($filter !== 'all' && isset($grouped[$filter])) {
             $grouped = [$filter => $grouped[$filter]];
         }
@@ -124,84 +199,7 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
         exit;
     }
 
-    // S3 Admin - Bild hochladen
-    if ($request->is('s3-admin/upload') && $request->isMethod('post')) {
-        if (!auth()->check() || !auth()->user()->can('settings-manage')) {
-            abort(403);
-        }
-
-        $files = $request->file('images');
-        $disk = Storage::disk('s3');
-        $uploaded = 0;
-        $month = date('Y-m');
-
-        if ($files) {
-            foreach ($files as $file) {
-                $name = \Illuminate\Support\Str::random(3) . $file->getClientOriginalName();
-                $path = 'uploads/images/gallery/' . $month . '/' . $name;
-                $disk->put($path, file_get_contents($file));
-                $uploaded++;
-            }
-        }
-
-        session()->flash('success', $uploaded . ' Bilder hochgeladen');
-        session()->save();
-        header('Location: ' . url('/s3-admin'));
-        exit;
-    }
-
-    // S3 Admin - Ausgewählte Bilder löschen
-    if ($request->is('s3-admin/delete') && $request->isMethod('post')) {
-        if (!auth()->check() || !auth()->user()->can('settings-manage')) {
-            abort(403);
-        }
-
-        $paths = $request->input('paths', []);
-        $disk = Storage::disk('s3');
-        $deleted = 0;
-
-        foreach ($paths as $path) {
-            if (str_starts_with($path, 'uploads/images/')) {
-                $disk->delete($path);
-                $dir = dirname($path);
-                $name = basename($path);
-                $disk->delete($dir . '/thumbs-150-150/' . $name);
-                $disk->delete($dir . '/scaled-1680-/' . $name);
-                \BookStack\Uploads\Image::where('path', '/' . $path)->delete();
-                $deleted++;
-            }
-        }
-
-        session()->flash('success', $deleted . ' Bilder gelöscht');
-        session()->save();
-        header('Location: ' . url('/s3-admin'));
-        exit;
-    }
-
-    // S3 Admin - Alle Bilder löschen
-    if ($request->is('s3-admin/delete-all') && $request->isMethod('post')) {
-        if (!auth()->check() || !auth()->user()->can('settings-manage')) {
-            abort(403);
-        }
-
-        $disk = Storage::disk('s3');
-        $allFiles = $disk->allFiles('uploads/images');
-        foreach ($allFiles as $file) {
-            $disk->delete($file);
-        }
-        $count = count($allFiles);
-        \BookStack\Uploads\Image::query()->delete();
-
-        session()->flash('success', $count . ' Dateien gelöscht');
-        session()->save();
-        header('Location: ' . url('/s3-admin'));
-        exit;
-    }
-
-    // ==============================
     // Logout abfangen
-    // ==============================
-
     if ($request->is('saml2/logout') && $request->isMethod('post')) {
         if (session()->get('local_login') === true) {
             auth()->logout();
@@ -212,10 +210,7 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
         }
     }
 
-    // ==============================
     // Auto-Redirect zu SAML
-    // ==============================
-
     if ($request->is('login') && $request->isMethod('get') && !$request->has('prevent_auto')) {
         $loginPath = url('/saml2/login');
         $token = csrf_token();
