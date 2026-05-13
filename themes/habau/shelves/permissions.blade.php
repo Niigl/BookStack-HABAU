@@ -89,7 +89,7 @@
                 </div>
 
                 <div class="form-group text-right">
-                    <button type="submit" class="button">{{ trans('common.save') }}</button>
+                    <button type="submit" class="button">{{ trans('common.save_permission') }}</button>
                 </div>
             </form>
         </div>

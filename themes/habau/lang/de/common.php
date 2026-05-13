@@ -14,6 +14,7 @@ return [
     'select' => 'Auswählen',
     'toggle_all' => 'Alle umschalten',
     'more' => 'Mehr',
+    'save_permission' => 'Berechtigungen Speichern',
 
     // Form Labels
     'name' => 'Name',

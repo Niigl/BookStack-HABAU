@@ -14,6 +14,7 @@ return [
     'select' => 'Select',
     'toggle_all' => 'Toggle All',
     'more' => 'More',
+    'save_permission' => 'Save Permissions',
 
     // Form Labels
     'name' => 'Name',
