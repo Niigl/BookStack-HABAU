@@ -307,10 +307,14 @@ Route::middleware('web')->get('/settings/navigation', function (Request $request
     }
 
     $links = json_decode(setting('app-dept-links', '[]'), true) ?: [];
+    $roles = \BookStack\Users\Models\Role::orderBy('display_name')->get(['id', 'display_name']);
+    $allowedRoles = json_decode(setting('app-dept-nav-roles', '[]'), true) ?: [];
 
     echo view('settings/navigation', [
-        'selected' => 'navigation',
-        'links' => $links,
+        'selected'     => 'navigation',
+        'links'        => $links,
+        'roles'        => $roles,
+        'allowedRoles' => $allowedRoles,
     ])->render();
     exit;
 });
@@ -324,6 +328,7 @@ Route::middleware('web')->post('/settings/navigation', function (Request $reques
     $labels = $request->input('label', []);
     $urls   = $request->input('url', []);
     $icons  = $request->input('icon', []);
+    $roles  = $request->input('roles', []);
 
     $links = [];
     foreach ($labels as $i => $label) {
@@ -332,6 +337,7 @@ Route::middleware('web')->post('/settings/navigation', function (Request $reques
                 'label' => trim($label),
                 'icon'  => trim($icons[$i] ?? ''),
                 'url'   => trim($urls[$i] ?? ''),
+                'roles' => array_map('intval', $roles[$i] ?? []),
             ];
         }
     }

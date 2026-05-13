@@ -1,11 +1,20 @@
 @php
     $deptLinks = json_decode(setting('app-dept-links', '[]'), true) ?: [];
+    $userRoleIds = auth()->check() ? auth()->user()->roles->pluck('id')->toArray() : [];
 @endphp
-@if(count($deptLinks) > 0)
+
+@php
+    $visibleLinks = array_filter($deptLinks, function($link) use ($userRoleIds) {
+        if (empty($link['roles'])) return true;
+        return count(array_intersect($link['roles'], $userRoleIds)) > 0;
+    });
+@endphp
+
+@if(count($visibleLinks) > 0)
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 <div class="dept-navbar">
     <nav class="dept-navbar-inner">
-        @foreach($deptLinks as $link)
+        @foreach($visibleLinks as $link)
             <a href="{{ $link['url'] }}" class="dept-navbar-link">
                 @if(!empty($link['icon']))
                     <i class="mdi mdi-{{ $link['icon'] }}"></i>
