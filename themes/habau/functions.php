@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
 // Eigene Route für lokalen Login
 Route::middleware('web')->post('/local-login', function (Request $request) {
@@ -216,5 +217,85 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
         $token = csrf_token();
         echo '<html><body><form id="f" method="POST" action="' . $loginPath . '"><input type="hidden" name="_token" value="' . $token . '"></form><script>document.getElementById("f").submit();</script></body></html>';
         exit;
+    }
+});
+
+// Avatar von Microsoft Graph nach SAML Login holen
+Theme::listen(ThemeEvents::AUTH_LOGIN, function ($service, $user) {
+    if ($service !== 'saml2') return;
+
+    try {
+        $tenantId = env('GRAPH_TENANT_ID');
+        $clientId = env('GRAPH_CLIENT_ID');
+        $clientSecret = env('GRAPH_CLIENT_SECRET');
+
+        if (!$tenantId || !$clientId || !$clientSecret) return;
+
+        // Token holen
+        $tokenResponse = Http::asForm()->post(
+            "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token",
+            [
+                'grant_type' => 'client_credentials',
+                'client_id' => $clientId,
+                'client_secret' => $clientSecret,
+                'scope' => 'https://graph.microsoft.com/.default',
+            ]
+        );
+
+        if (!$tokenResponse->ok()) return;
+        $token = $tokenResponse->json('access_token');
+
+        // Prüfen ob sich das Foto geändert hat
+        $metaResponse = Http::withToken($token)
+            ->get("https://graph.microsoft.com/v1.0/users/{$user->email}/photo");
+
+        if (!$metaResponse->ok()) return;
+
+        $lastModified = $metaResponse->json('@odata.mediaEtag', '');
+        $cacheKey = 'avatar_etag_' . $user->id;
+
+        // Nur updaten wenn sich das Bild geändert hat
+        if ($user->image_id && cache()->get($cacheKey) === $lastModified) return;
+
+        // Profilbild holen
+        $photoResponse = Http::withToken($token)
+            ->get("https://graph.microsoft.com/v1.0/users/{$user->email}/photo/\$value");
+
+        if (!$photoResponse->ok()) return;
+
+        // Altes Avatar löschen falls vorhanden
+        if ($user->image_id) {
+            $oldImage = \BookStack\Uploads\Image::find($user->image_id);
+            if ($oldImage) {
+                Storage::disk('s3')->delete(ltrim($oldImage->path, '/'));
+                $oldImage->delete();
+            }
+        }
+
+        // Neues Bild in S3 speichern
+        $disk = Storage::disk('s3');
+        $path = 'uploads/images/user/' . date('Y-m') . '/' . \Illuminate\Support\Str::random(10) . '-avatar.png';
+        $disk->put($path, $photoResponse->body());
+
+        // BookStack Image-Eintrag erstellen
+        $image = new \BookStack\Uploads\Image();
+        $image->name = $user->name . ' Avatar';
+        $image->path = '/' . $path;
+        $image->url = url('/' . $path);
+        $image->type = 'user';
+        $image->uploaded_to = $user->id;
+        $image->created_by = $user->id;
+        $image->updated_by = $user->id;
+        $image->save();
+
+        // User aktualisieren
+        $user->image_id = $image->id;
+        $user->save();
+
+        // ETag cachen damit nicht bei jedem Login neu geladen wird
+        cache()->put($cacheKey, $lastModified, now()->addDays(1));
+
+    } catch (\Exception $e) {
+        \Log::warning('Avatar sync failed for ' . $user->email . ': ' . $e->getMessage());
     }
 });
