@@ -72,12 +72,18 @@
                         <p class="text-small text-muted mb-s">Sichtbar für Rollen (keine Auswahl = alle):</p>
                         <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px;">
                             @foreach($roles as $role)
+                                @php $roleTag = \DB::table('habau_role_tags')->where('role_id', $role->id)->first(); @endphp
                                 <label class="flex-container-row gap-s items-center" style="cursor:pointer;">
                                     <input type="checkbox"
-                                           name="roles[{{ $i }}][]"
-                                           value="{{ $role->id }}"
-                                           {{ in_array($role->id, $link['roles'] ?? []) ? 'checked' : '' }}>
-                                    <span class="text-small">{{ $role->display_name }}</span>
+                                        name="roles[{{ $i }}][]"
+                                        value="{{ $role->id }}"
+                                        {{ in_array($role->id, $link['roles'] ?? []) ? 'checked' : '' }}>
+                                    <span class="text-small">
+                                        {{ $role->display_name }}
+                                        @if($roleTag)
+                                            <span style="background: {{ $roleTag->color }}; color:#fff; font-size:0.7em; padding: 1px 6px; border-radius:3px; margin-left:4px;">{{ $roleTag->tag }}</span>
+                                        @endif
+                                    </span>
                                 </label>
                             @endforeach
                         </div>
