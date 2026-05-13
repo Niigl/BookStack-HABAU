@@ -29,6 +29,20 @@ $migrations = [
             echo "→ Tabelle 'user_entity_permissions' existiert bereits\n";
         }
     },
+    '002_create_role_tags' => function() {
+        if (!\Schema::hasTable('habau_role_tags')) {
+            \Schema::create('habau_role_tags', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->integer('role_id');
+                $table->string('tag', 50);
+                $table->string('color', 7)->default('#1b71a1');
+                $table->index('role_id');
+            });
+            echo "✓ Tabelle 'habau_role_tags' erstellt\n";
+        } else {
+            echo "→ Tabelle 'habau_role_tags' existiert bereits\n";
+        }
+    },
 ];
 
 // Migration-Status Tabelle erstellen falls nicht vorhanden

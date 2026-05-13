@@ -377,8 +377,10 @@ Route::middleware('web')->get('/settings/navigation', function (Request $request
     }
 
     $links = json_decode(setting('app-dept-links', '[]'), true) ?: [];
-    $roles = \BookStack\Users\Models\Role::orderBy('display_name')->get(['id', 'display_name']);
     $allowedRoles = json_decode(setting('app-dept-nav-roles', '[]'), true) ?: [];
+    $roles = \BookStack\Users\Models\Role::orderBy('display_name')
+        ->where('system_name', 'not like', 'user-proxy-%')
+        ->get(['id', 'display_name']);
 
     echo view('settings/navigation', [
         'selected'     => 'navigation',
@@ -741,4 +743,25 @@ Route::middleware('web')->post('/habau/permissions/page/{id}', function (Request
         return redirect()->back()->with('error', 'Fehler: ' . $e->getMessage());
     }
     return redirect()->back()->with('success', 'Benutzer-Berechtigungen gespeichert');
+});
+
+Route::middleware('web')->post('/habau/role-tags/{roleId}', function (Request $request, $roleId) {
+    if (!auth()->check() || !auth()->user()->can('settings-manage')) abort(403);
+
+    \DB::table('habau_role_tags')->where('role_id', $roleId)->delete();
+
+    if ($request->input('clear') !== '1') {
+        $tag = trim($request->input('tag', ''));
+        $color = trim($request->input('color', '#1b71a1'));
+
+        if (!empty($tag)) {
+            \DB::table('habau_role_tags')->insert([
+                'role_id' => $roleId,
+                'tag'     => $tag,
+                'color'   => $color,
+            ]);
+        }
+    }
+
+    return redirect()->back()->with('success', 'Tag gespeichert');
 });
