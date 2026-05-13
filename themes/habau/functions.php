@@ -481,8 +481,66 @@ Route::middleware('web')->get('/explorer', function (Request $request) {
         }
     }
 
+    // Proxy-Berechtigungen für aktuellen User laden
+    $userId = auth()->id();
+    $proxyRole = \BookStack\Users\Models\Role::where('system_name', 'user-proxy-' . $userId)->first();
+
+    $proxyBooks = collect();
+    $proxyPages = collect();
+
+    if ($proxyRole) {
+        // Books via entity_permissions wo Proxy-Rolle berechtigt ist
+        $proxyBookIds = \DB::table('entity_permissions')
+            ->where('entity_type', 'book')
+            ->where('role_id', $proxyRole->id)
+            ->where('view', 1)
+            ->pluck('entity_id');
+
+        $existingBookIds = $shelves->flatMap->visibleBooks->pluck('id');
+
+        $proxyBooks = \BookStack\Entities\Models\Book::whereIn('id', $proxyBookIds)
+            ->whereNotIn('id', $existingBookIds)
+            ->get();
+
+        foreach ($proxyBooks as $book) {
+            $book->chapters = $entityQueries->chapters->visibleForList()
+                ->where('book_id', $book->id)
+                ->orderBy('priority', 'asc')
+                ->get();
+
+            foreach ($book->chapters as $chapter) {
+                $chapter->pages = $entityQueries->pages->visibleForList()
+                    ->where('chapter_id', $chapter->id)
+                    ->where('draft', false)
+                    ->orderBy('priority', 'asc')
+                    ->get();
+            }
+
+            $book->directPages = $entityQueries->pages->visibleForList()
+                ->where('book_id', $book->id)
+                ->whereNull('chapter_id')
+                ->where('draft', false)
+                ->orderBy('priority', 'asc')
+                ->get();
+        }
+
+        // Pages via entity_permissions
+        $proxyPageIds = \DB::table('entity_permissions')
+            ->where('entity_type', 'page')
+            ->where('role_id', $proxyRole->id)
+            ->where('view', 1)
+            ->pluck('entity_id');
+
+        $proxyPages = \BookStack\Entities\Models\Page::whereIn('id', $proxyPageIds)
+            ->where('draft', false)
+            ->with('book')
+            ->get();
+    }
+
     echo view('explorer', [
-        'shelves' => $shelves,
+        'shelves'    => $shelves,
+        'proxyBooks' => $proxyBooks,
+        'proxyPages' => $proxyPages,
     ])->render();
     exit;
 });
