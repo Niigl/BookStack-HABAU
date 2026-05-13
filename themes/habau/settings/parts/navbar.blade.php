@@ -19,4 +19,7 @@
     @if(userCan(\BookStack\Permissions\Permission::SettingsManage))
         <a href="{{ url('/s3-admin') }}" @if(request()->is('s3-admin')) class="active" @endif>@icon('image') Bilder</a>
     @endif
+    @if(userCan(\BookStack\Permissions\Permission::SettingsManage))
+    <a href="{{ url('/settings/navigation') }}" @if($selected == 'navigation') class="active" @endif>@icon('link')Navigation</a>
+@endif
 </nav>

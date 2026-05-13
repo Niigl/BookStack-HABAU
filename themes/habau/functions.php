@@ -299,3 +299,69 @@ Theme::listen(ThemeEvents::AUTH_LOGIN, function ($service, $user) {
         \Log::warning('Avatar sync failed for ' . $user->email . ': ' . $e->getMessage());
     }
 });
+
+// Navigation Settings - GET
+Route::middleware('web')->get('/settings/navigation', function (Request $request) {
+    if (!auth()->check() || !auth()->user()->can('settings-manage')) {
+        abort(403);
+    }
+
+    $links = json_decode(setting('app-dept-links', '[]'), true) ?: [];
+
+    echo view('settings/navigation', [
+        'selected' => 'navigation',
+        'links' => $links,
+    ])->render();
+    exit;
+});
+
+// Navigation Settings - POST
+Route::middleware('web')->post('/settings/navigation', function (Request $request) {
+    if (!auth()->check() || !auth()->user()->can('settings-manage')) {
+        abort(403);
+    }
+
+    $labels = $request->input('label', []);
+    $urls   = $request->input('url', []);
+    $icons  = $request->input('icon', []);
+
+    $links = [];
+    foreach ($labels as $i => $label) {
+        if (!empty(trim($label))) {
+            $links[] = [
+                'label' => trim($label),
+                'icon'  => trim($icons[$i] ?? ''),
+                'url'   => trim($urls[$i] ?? ''),
+            ];
+        }
+    }
+
+    setting()->put('app-dept-links', json_encode($links));
+    return redirect('/settings/navigation')->with('success', 'Navigation gespeichert');
+});
+
+Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
+    if (($request->path() === '/' || $request->path() === '') && $request->isMethod('get') && setting('app-homepage-type') === 'habau') {
+        if (!auth()->check()) return;
+        try {
+            $habauFavourites = app(\BookStack\Entities\Queries\QueryTopFavourites::class)->run(6);
+            $habauRecentPages = app(\BookStack\Entities\Queries\EntityQueries::class)
+                ->pages->visibleForList()
+                ->where('draft', false)
+                ->orderBy('updated_at', 'desc')
+                ->take(10)
+                ->get();
+
+            $rendered = view('home.habau', [
+                'favourites'           => $habauFavourites,
+                'recentlyUpdatedPages' => $habauRecentPages,
+                'activity'             => collect(),
+                'recents'              => collect(),
+                'draftPages'           => collect(),
+            ])->render();
+            echo $rendered;
+            exit;
+        } catch (\Exception $e) {
+        }
+    }
+});
