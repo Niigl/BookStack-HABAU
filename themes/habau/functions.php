@@ -365,3 +365,48 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
         }
     }
 });
+
+Route::middleware('web')->get('/explorer', function (Request $request) {
+    if (!auth()->check()) {
+        return redirect('/login');
+    }
+
+    $entityQueries = app(\BookStack\Entities\Queries\EntityQueries::class);
+
+    $shelves = $entityQueries->shelves->visibleForListWithCover()
+        ->orderBy('name', 'asc')
+        ->get();
+
+    foreach ($shelves as $shelf) {
+        $shelf->visibleBooks = $shelf->visibleBooks()
+            ->orderBy('name', 'asc')
+            ->get();
+
+        foreach ($shelf->visibleBooks as $book) {
+            $book->chapters = $entityQueries->chapters->visibleForList()
+                ->where('book_id', $book->id)
+                ->orderBy('priority', 'asc')
+                ->get();
+
+            foreach ($book->chapters as $chapter) {
+                $chapter->pages = $entityQueries->pages->visibleForList()
+                    ->where('chapter_id', $chapter->id)
+                    ->where('draft', false)
+                    ->orderBy('priority', 'asc')
+                    ->get();
+            }
+
+            $book->directPages = $entityQueries->pages->visibleForList()
+                ->where('book_id', $book->id)
+                ->whereNull('chapter_id')
+                ->where('draft', false)
+                ->orderBy('priority', 'asc')
+                ->get();
+        }
+    }
+
+    echo view('explorer', [
+        'shelves' => $shelves,
+    ])->render();
+    exit;
+});
