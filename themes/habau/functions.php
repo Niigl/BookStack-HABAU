@@ -218,6 +218,76 @@ Theme::listen(ThemeEvents::WEB_MIDDLEWARE_BEFORE, function (Request $request) {
         echo '<html><body><form id="f" method="POST" action="' . $loginPath . '"><input type="hidden" name="_token" value="' . $token . '"></form><script>document.getElementById("f").submit();</script></body></html>';
         exit;
     }
+
+    // Shelf Permissions GET abfangen
+    if (preg_match('#^shelves/([^/]+)/permissions$#', $request->path(), $m) && $request->isMethod('get')) {
+        if (!auth()->check()) return;
+
+        $shelf = \BookStack\Entities\Queries\EntityQueries::class;
+        $entityQueries = app(\BookStack\Entities\Queries\EntityQueries::class);
+        $shelf = $entityQueries->shelves->findVisibleBySlugOrFail($m[1]);
+
+        $userPermissions = \DB::table('user_entity_permissions')
+            ->where('entity_type', 'bookshelf')
+            ->where('entity_id', $shelf->id)
+            ->get()
+            ->map(function($up) {
+                $up->user = \BookStack\Users\Models\User::find($up->user_id);
+                return $up;
+            })
+            ->filter(fn($up) => $up->user !== null);
+
+        echo view('shelves.permissions', [
+            'shelf'           => $shelf,
+            'data'            => new \BookStack\Permissions\PermissionFormData($shelf),
+            'userPermissions' => $userPermissions,
+        ])->render();
+        exit;
+    }
+
+    // Book Permissions GET
+    if (preg_match('#^books/([^/]+)/permissions$#', $request->path(), $m) && $request->isMethod('get')) {
+        if (!auth()->check()) return;
+        $entityQueries = app(\BookStack\Entities\Queries\EntityQueries::class);
+        $book = $entityQueries->books->findVisibleBySlugOrFail($m[1]);
+        $userPermissions = \DB::table('user_entity_permissions')
+            ->where('entity_type', 'book')
+            ->where('entity_id', $book->id)
+            ->get()
+            ->map(function($up) {
+                $up->user = \BookStack\Users\Models\User::find($up->user_id);
+                return $up;
+            })
+            ->filter(fn($up) => $up->user !== null);
+        echo view('books.permissions', [
+            'book'            => $book,
+            'data'            => new \BookStack\Permissions\PermissionFormData($book),
+            'userPermissions' => $userPermissions,
+        ])->render();
+        exit;
+    }
+
+    // Page Permissions GET
+    if (preg_match('#^books/([^/]+)/page/([^/]+)/permissions$#', $request->path(), $m) && $request->isMethod('get')) {
+        if (!auth()->check()) return;
+        $entityQueries = app(\BookStack\Entities\Queries\EntityQueries::class);
+        $page = $entityQueries->pages->findVisibleBySlugsOrFail($m[1], $m[2]);
+        $userPermissions = \DB::table('user_entity_permissions')
+            ->where('entity_type', 'page')
+            ->where('entity_id', $page->id)
+            ->get()
+            ->map(function($up) {
+                $up->user = \BookStack\Users\Models\User::find($up->user_id);
+                return $up;
+            })
+            ->filter(fn($up) => $up->user !== null);
+        echo view('pages.permissions', [
+            'page'            => $page,
+            'data'            => new \BookStack\Permissions\PermissionFormData($page),
+            'userPermissions' => $userPermissions,
+        ])->render();
+        exit;
+    }
 });
 
 // Avatar von Microsoft Graph nach SAML Login holen
@@ -415,4 +485,202 @@ Route::middleware('web')->get('/explorer', function (Request $request) {
         'shelves' => $shelves,
     ])->render();
     exit;
+});
+
+// User-Permissions: Shelf GET wird über Controller gehandelt, wir überschreiben nur POST + Search
+Route::middleware('web')->get('/habau/users/search', function (Request $request) {
+    if (!auth()->check()) abort(403);
+    $q = $request->input('q', '');
+    $users = \BookStack\Users\Models\User::query()
+        ->where(function($query) use ($q) {
+            $query->where('name', 'like', '%' . $q . '%')
+                  ->orWhere('email', 'like', '%' . $q . '%');
+        })
+        ->take(10)
+        ->get(['id', 'name', 'email', 'image_id'])
+        ->map(fn($u) => [
+            'id'     => $u->id,
+            'name'   => $u->name,
+            'email'  => $u->email,
+            'avatar' => $u->getAvatar(32),
+        ]);
+    return response()->json($users);
+});
+
+// Hilfsfunktion: Proxy-Rolle für User holen oder erstellen
+function getOrCreateUserProxyRole(int $userId): \BookStack\Users\Models\Role {
+    $systemName = 'user-proxy-' . $userId;
+    $role = \BookStack\Users\Models\Role::where('system_name', $systemName)->first();
+    
+    if (!$role) {
+        $user = \BookStack\Users\Models\User::find($userId);
+        $role = new \BookStack\Users\Models\Role();
+        $role->display_name = $user ? $user->name : 'User #' . $userId;
+        $role->description = 'Auto-generated user permission proxy';
+        $role->system_name = $systemName;
+        $role->save();
+        
+        if ($user) {
+            $user->roles()->attach($role->id);
+        }
+    }
+    
+    return $role;
+}
+
+// Shelf User-Permissions speichern - Route ersetzen
+Route::middleware('web')->post('/habau/permissions/shelf/{id}', function (Request $request, $id) {
+    \Log::info('SHELF PERM POST REACHED, id: ' . $id . ', data: ' . json_encode($request->input('user_permissions')));
+    if (!auth()->check() || !auth()->user()->can('restrictions-manage-all')) abort(403);
+
+    try {
+        // Alte user_entity_permissions für dieses Shelf laden
+        $oldPerms = \DB::table('user_entity_permissions')
+            ->where('entity_type', 'bookshelf')
+            ->where('entity_id', $id)
+            ->get();
+
+        // Alte entity_permissions für Proxy-Rollen dieser User entfernen
+        foreach ($oldPerms as $old) {
+            $role = \BookStack\Users\Models\Role::where('system_name', 'user-proxy-' . $old->user_id)->first();
+            if ($role) {
+                \DB::table('entity_permissions')
+                    ->where('entity_type', 'bookshelf')
+                    ->where('entity_id', $id)
+                    ->where('role_id', $role->id)
+                    ->delete();
+            }
+        }
+
+        // Alte user_entity_permissions löschen
+        \DB::table('user_entity_permissions')
+            ->where('entity_type', 'bookshelf')
+            ->where('entity_id', $id)
+            ->delete();
+
+        // Neue Permissions speichern
+        foreach ($request->input('user_permissions', []) as $up) {
+            if (empty($up['user_id'])) continue;
+            $userId = (int) $up['user_id'];
+            \Log::info('Processing user: ' . $userId);
+
+            $role = getOrCreateUserProxyRole($userId);
+            \Log::info('Proxy role id: ' . $role->id);
+
+            // In unsere eigene Tabelle speichern
+            \DB::table('user_entity_permissions')->insert([
+                'entity_id'   => $id,
+                'entity_type' => 'bookshelf',
+                'user_id'     => $userId,
+                'view'        => isset($up['view']) ? 1 : 0,
+                'create'      => isset($up['create']) ? 1 : 0,
+                'update'      => isset($up['update']) ? 1 : 0,
+                'delete'      => isset($up['delete']) ? 1 : 0,
+            ]);
+            \Log::info('user_entity_permissions inserted');
+
+            // In BookStack's entity_permissions für Proxy-Rolle speichern
+            \DB::table('entity_permissions')->updateOrInsert(
+                [
+                    'entity_type' => 'bookshelf',
+                    'entity_id'   => $id,
+                    'role_id'     => $role->id,
+                ],
+                [
+                    'view'   => isset($up['view']) ? 1 : 0,
+                    'create' => isset($up['create']) ? 1 : 0,
+                    'update' => isset($up['update']) ? 1 : 0,
+                    'delete' => isset($up['delete']) ? 1 : 0,
+                ]
+            );
+            \Log::info('entity_permissions inserted');
+        }
+
+        // BookStack Joint-Permissions neu aufbauen
+        $shelf = \BookStack\Entities\Models\Bookshelf::find($id);
+        app(\BookStack\Permissions\JointPermissionBuilder::class)->rebuildForEntity($shelf);
+        \Log::info('Joint permissions rebuilt');
+
+    } catch (\Exception $e) {
+        \Log::error('SHELF PERM ERROR: ' . $e->getMessage() . ' | ' . $e->getTraceAsString());
+        return redirect()->back()->with('error', 'Fehler: ' . $e->getMessage());
+    }
+
+    return redirect()->back()->with('success', 'Benutzer-Berechtigungen gespeichert');
+});
+
+// Book User-Permissions speichern
+Route::middleware('web')->post('/habau/permissions/book/{id}', function (Request $request, $id) {
+    if (!auth()->check() || !auth()->user()->can('restrictions-manage-all')) abort(403);
+    try {
+        $oldPerms = \DB::table('user_entity_permissions')
+            ->where('entity_type', 'book')->where('entity_id', $id)->get();
+        foreach ($oldPerms as $old) {
+            $role = \BookStack\Users\Models\Role::where('system_name', 'user-proxy-' . $old->user_id)->first();
+            if ($role) {
+                \DB::table('entity_permissions')
+                    ->where('entity_type', 'book')->where('entity_id', $id)->where('role_id', $role->id)->delete();
+            }
+        }
+        \DB::table('user_entity_permissions')->where('entity_type', 'book')->where('entity_id', $id)->delete();
+        foreach ($request->input('user_permissions', []) as $up) {
+            if (empty($up['user_id'])) continue;
+            $userId = (int) $up['user_id'];
+            $role = getOrCreateUserProxyRole($userId);
+            \DB::table('user_entity_permissions')->insert([
+                'entity_id' => $id, 'entity_type' => 'book', 'user_id' => $userId,
+                'view' => isset($up['view']) ? 1 : 0, 'create' => isset($up['create']) ? 1 : 0,
+                'update' => isset($up['update']) ? 1 : 0, 'delete' => isset($up['delete']) ? 1 : 0,
+            ]);
+            \DB::table('entity_permissions')->updateOrInsert(
+                ['entity_type' => 'book', 'entity_id' => $id, 'role_id' => $role->id],
+                ['view' => isset($up['view']) ? 1 : 0, 'create' => isset($up['create']) ? 1 : 0,
+                 'update' => isset($up['update']) ? 1 : 0, 'delete' => isset($up['delete']) ? 1 : 0]
+            );
+        }
+        $book = \BookStack\Entities\Models\Book::find($id);
+        app(\BookStack\Permissions\JointPermissionBuilder::class)->rebuildForEntity($book);
+    } catch (\Exception $e) {
+        \Log::error('BOOK PERM ERROR: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Fehler: ' . $e->getMessage());
+    }
+    return redirect()->back()->with('success', 'Benutzer-Berechtigungen gespeichert');
+});
+
+// Page User-Permissions speichern
+Route::middleware('web')->post('/habau/permissions/page/{id}', function (Request $request, $id) {
+    if (!auth()->check() || !auth()->user()->can('restrictions-manage-all')) abort(403);
+    try {
+        $oldPerms = \DB::table('user_entity_permissions')
+            ->where('entity_type', 'page')->where('entity_id', $id)->get();
+        foreach ($oldPerms as $old) {
+            $role = \BookStack\Users\Models\Role::where('system_name', 'user-proxy-' . $old->user_id)->first();
+            if ($role) {
+                \DB::table('entity_permissions')
+                    ->where('entity_type', 'page')->where('entity_id', $id)->where('role_id', $role->id)->delete();
+            }
+        }
+        \DB::table('user_entity_permissions')->where('entity_type', 'page')->where('entity_id', $id)->delete();
+        foreach ($request->input('user_permissions', []) as $up) {
+            if (empty($up['user_id'])) continue;
+            $userId = (int) $up['user_id'];
+            $role = getOrCreateUserProxyRole($userId);
+            \DB::table('user_entity_permissions')->insert([
+                'entity_id' => $id, 'entity_type' => 'page', 'user_id' => $userId,
+                'view' => isset($up['view']) ? 1 : 0, 'create' => 0,
+                'update' => isset($up['update']) ? 1 : 0, 'delete' => isset($up['delete']) ? 1 : 0,
+            ]);
+            \DB::table('entity_permissions')->updateOrInsert(
+                ['entity_type' => 'page', 'entity_id' => $id, 'role_id' => $role->id],
+                ['view' => isset($up['view']) ? 1 : 0, 'create' => 0,
+                 'update' => isset($up['update']) ? 1 : 0, 'delete' => isset($up['delete']) ? 1 : 0]
+            );
+        }
+        $page = \BookStack\Entities\Models\Page::find($id);
+        app(\BookStack\Permissions\JointPermissionBuilder::class)->rebuildForEntity($page);
+    } catch (\Exception $e) {
+        \Log::error('PAGE PERM ERROR: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Fehler: ' . $e->getMessage());
+    }
+    return redirect()->back()->with('success', 'Benutzer-Berechtigungen gespeichert');
 });
